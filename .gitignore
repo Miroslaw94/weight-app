@@ -1,4 +1,5 @@
-myvenv
+env
 .pyc
 __pycache__
 .idea
+brudnopis.py
