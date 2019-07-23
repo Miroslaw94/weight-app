@@ -6,7 +6,12 @@ from database import CursorFromConnectionPool
 def save_measurements(name, weight):
     check_user_exists(name)
     with CursorFromConnectionPool() as cursor:
-        cursor.execute('INSERT INTO {} (date, weight) VALUES (%s, %s)'.format(name.lower()), (date.today(), weight,))
+        cursor.execute('SELECT EXISTS(SELECT * FROM {} WHERE date=%s)'.format(name), (date.today(),))
+        exists = cursor.fetchone()[0]
+        if exists:
+            print("You have already saved your weight today. Come back tomorrow! :-) ")
+        else:
+            cursor.execute('INSERT INTO {} (date, weight) VALUES (%s, %s)'.format(name.lower()), (date.today(), weight,))
 
 def check_user_exists(name):
     with CursorFromConnectionPool() as cursor:
@@ -57,4 +62,17 @@ def interpret_bmi(bmi):
 
 def calculate_difference(name):
     with CursorFromConnectionPool() as cursor:
-        cursor.execute()
+        cursor.execute('SELECT weight FROM {} ORDER BY date DESC'.format(name))
+        data = cursor.fetchall()
+        if len(data) > 1:
+            current_weight = data[0][0]
+            previous_weight = data[1][0]
+        else:
+            return "Welcome in weight-app! Your weight is saved. "
+    difference = current_weight - previous_weight
+    if difference > 0:
+        return f"You have gained {difference} kg since last time. "
+    elif difference == 0:
+        return "You weight the same as last time. "
+    else:
+        return f"You have lost {difference} kg since last time. "

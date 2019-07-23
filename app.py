@@ -19,7 +19,7 @@ if __name__ == '__main__':
     user_functions.check_users_table_exists()
     if args.weight:
         user_functions.save_measurements(args.name, args.weight)
-        print("Weight saved.")
+        print(user_functions.calculate_difference(args.name))
     if args.bmi:
         bmi = user_functions.calculate_bmi(args.name)
         print(f"Your today's BMI is {bmi}")
