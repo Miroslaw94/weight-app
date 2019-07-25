@@ -1,4 +1,5 @@
-from datetime import date
+import matplotlib.pyplot as plt
+from datetime import date, timedelta
 
 from database import CursorFromConnectionPool
 
@@ -76,3 +77,32 @@ def calculate_difference(name):
         return "You weight the same as last time. "
     else:
         return f"You have lost {difference} kg since last time. "
+
+def draw_graph(name, period=None):
+    if period == 'm':
+        print('Month')
+        old_date = date.today() - timedelta(days=30)
+        with CursorFromConnectionPool() as cursor:
+            cursor.execute('SELECT weight, date FROM {} WHERE date BETWEEN %s AND %s ORDER BY date ASC'.format(name),
+                           (old_date, date.today()))
+            measurements = cursor.fetchall()
+    elif period == 'y':
+        print('Year')
+        old_date = date.today() - timedelta(days=365)
+        with CursorFromConnectionPool() as cursor:
+            cursor.execute('SELECT weight, date FROM {} WHERE date BETWEEN %s AND %s ORDER BY date ASC'.format(name),
+                           (old_date, date.today()))
+            measurements = cursor.fetchall()
+    else:
+        print('All')
+        with CursorFromConnectionPool() as cursor:
+            cursor.execute('SELECT weight, date FROM {} ORDER BY date ASC'.format(name))
+            measurements = cursor.fetchall()
+    weight = [float(row[0]) for row in measurements]
+    dates = [row[1] for row in measurements]
+    plt.plot(dates, weight)
+    plt.ylabel('Weight')
+    plt.xlabel('Date')
+    plt.grid(True)
+    plt.xticks(rotation=60)
+    plt.show()
